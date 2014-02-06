@@ -5,12 +5,16 @@
   file.directory:
     - makedirs: true
 
+/var/log/supervisor:
+  file.directory: []
+
 supervisord.conf:
   file.managed:
     - name: /etc/supervisor/supervisord.conf
     - source: salt://mytardis/templates/supervisord.conf
     - require:
         - file: /etc/supervisor/conf.d
+        - file: /var/log/supervisor
 {% if grains['os_family'] == 'Debian' %}
         - pkg: supervisor
 {% else %}

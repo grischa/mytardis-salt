@@ -8,7 +8,12 @@ rabbitmq-repo:
 {% endif %}
 
 rabbitmq-server:
-  pkg.installed: []
+  pkg:
+    - installed
+{% if grains['os_family'] == "RedHat" %}
+    - sources:
+      - rabbitmq-server: "http://www.rabbitmq.com/releases/rabbitmq-server/v3.2.3/rabbitmq-server-3.2.3-1.noarch.rpm"
+{% endif %}
   service.running:
     - require:
       - pkg: rabbitmq-server

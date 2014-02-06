@@ -1,8 +1,21 @@
+{% if grains['os_family'] == "RedHat" %}
+pgsql-repo:
+  pkg.installed:
+    - sources:
+{% if grains['os'] == "CentOS" %}
+      - pgdg-centos93: "http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-centos93-9.3-1.noarch.rpm"
+{% else %}
+      - pgdg-redhat93: "http://yum.postgresql.org/9.3/redhat/rhel-6-x86_64/pgdg-redhat93-9.3-1.noarch.rpm"
+{% endif %}
+    - require_in:
+      - pkg: postgresql-server
+{% endif %}
+
 postgresql-server:
   pkg.installed:
     - names:
     {% if grains['os_family'] == "RedHat" %}
-      - postgresql-server
+      - postgresql93-server
     {% elif grains['os_family'] == 'Debian' %}
       - postgresql
     {% endif %}
@@ -19,7 +32,11 @@ postgresql-server:
 
   service:
     - running
+{% if grains['os_family'] == "RedHat" %}
+    - name: postgresql-9.3
+{% else %}
     - name: postgresql
+{% endif %}
     - require:
         - pkg: postgresql-server
 {% if grains['os_family'] == 'Debian' %}
@@ -41,8 +58,8 @@ postgresql-server:
 
 {% if grains['os_family'] == "RedHat" %}
   cmd.run:
-    - name: service postgresql initdb
-    - unless: ls /var/lib/pgsql/data/base
+    - name: service postgresql-9.3 initdb
+    - unless: ls /var/lib/pgsql/9.3/data/base
     - require_in:
         - service: postgresql-server
 {% endif %}

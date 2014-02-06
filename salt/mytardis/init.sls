@@ -142,7 +142,7 @@ requirements:
 devtools:
   module.run:
     - name: pkg.group_install
-    - m_name: 'Development Tools'
+    - m_name: 'development'
     - require_in:
       - cmd: buildout
 {% endif %}
