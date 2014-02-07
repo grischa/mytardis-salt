@@ -35,7 +35,7 @@ supervisor-service-stop:
   cmd.run:
     - name: service supervisor stop
     - require:
-        - file: /etc/supervisor/supervisord.conf
+        - file: supervisord.conf
         - file: {{ mytardis_inst_dir }}/wsgi.py
         - cmd: supervisorctl stop all
 
@@ -76,7 +76,7 @@ supervisor-service-start:
   cmd.run:
     - name: service supervisor restart
     - require:
-        - file: /etc/supervisor/supervisord.conf
+        - file: supervisord.conf
         - file: {{ mytardis_inst_dir }}/wsgi.py
         - cmd: supervisorctl stop all
 
@@ -90,4 +90,12 @@ supervisorctl start all:
   cmd.run:
     - require:
         - cmd: supervisor-service-start
+
+/etc/supervisord.conf:
+  file.symlink:
+    - target: /etc/supervisor/supervisord.conf
+    - force: true
+    - backupname: /etc/supervisord.conf-saltbkup
+    - require_in:
+        - file: supervisord.conf
 {% endif %}
