@@ -133,7 +133,7 @@ requirements:
 {% if grains['os'] == "RedHat" %}
       - compat-libevent14-devel
 {% else %}
-      - libevent-devel
+      - libevent-devel-1.4.13
 {% endif %}
 {% endif %}
 
