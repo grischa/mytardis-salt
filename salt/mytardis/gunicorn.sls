@@ -17,8 +17,8 @@
     - require_in:
         - cmd: supervisorctl start gunicorn
 
-{% if pillar.get('gunicorn_ssl', False) %}
-{% set ca_name = salt['pillar.get']('proxy_ca_name', 'nginx-gunicorn-ca') %}
+{% if pillar.get('gunicorn_tcp_socket', False) and pillar.get('gunicorn_ssl', False) %}
+{% set ca_name = pillar.get('proxy_ca_name', 'nginx-gunicorn-ca') %}
 {% set cert_path = '/etc/pki/' + ca_name + '/' + ca_name + '_ca_cert' %}
 # this cert needs to be created manually before using tcp sockets
 {{ cert_path }}.crt:
@@ -56,7 +56,7 @@ command={{ mytardis_inst_dir}}/bin/gunicorn\n
  -c {{mytardis_inst_dir}}/gunicorn_settings.py\n
  -u {{ pillar['mytardis_user'] }} -g {{ nginx_group }}\n
  -b unix:{{ socketdir }}/socket\n
-{% if pillar['gunicorn_tcp_socket'] %}{% for ipaddr in salt['network.ip_addrs']() %} -b {{ ipaddr }}:8000\n{% endfor %}
+{% if pillar.get('gunicorn_tcp_socket', False) %}{% for ipaddr in salt['network.ip_addrs']() %} -b {{ ipaddr }}:8000\n{% endfor %}
 {% if pillar.get('gunicorn_ssl', False) %} --certfile {{ cert_path }}.crt\n
  --keyfile {{ cert_path }}.key\n{% endif %}{% endif %} wsgi:application\n\
 stdout_logfile=/var/log/gunicorn.log\n\
