@@ -9,10 +9,10 @@ mytardis-user:
     - home: {{ pillar['mytardis_base_dir'] }}
     - groups:
         - {{ pillar['mytardis_group'] }}
-{% if pillar.get('mytardis_uid', False) %}
+{% if salt['pillar.get']('mytardis_uid', False) %}
     - uid: {{ pillar['mytardis_uid'] }}
 {% endif %}
-{% if pillar.get('mytardis_gid', False) %}
+{% if salt['pillar.get']('mytardis_gid', False) %}
     - gid: {{ pillar['mytardis_gid'] }}
 {% endif %}
     - require:
@@ -21,7 +21,7 @@ mytardis-user:
 mytardis-group:
   group.present:
     - name: {{ pillar['mytardis_group'] }}
-{% if pillar.get('mytardis_gid', False) %}
+{% if salt['pillar.get']('mytardis_gid', False) %}
     - gid: {{ pillar['mytardis_gid'] }}
 {% endif %}
 
@@ -71,12 +71,12 @@ git reset --hard HEAD:
 
 force-branch-update:
   cmd.run:
-{% if pillar.get('mytardis_branch', 'master') != "develop" %}
+{% if salt['pillar.get']('mytardis_branch', 'master') != "develop" %}
 {% set other_branch = "develop" %}
 {% else %}
 {% set other_branch = "master" %}
 {% endif %}
-    - name: git checkout {{ other_branch }} && git branch -D {{ pillar.get('mytardis_branch', 'master') }} ; git fetch && git checkout -f {{ pillar.get('mytardis_branch', 'master') }}
+    - name: git checkout {{ other_branch }} && git branch -D {{ pillar.get('mytardis_branch', 'master') }} ; git fetch && git checkout -f {{ salt['pillar.get']('mytardis_branch', 'master') }}
     - cwd: {{ mytardis_inst_dir }}
     - user: {{ pillar['mytardis_user'] }}
     - require:
@@ -93,7 +93,7 @@ mytardis-git:
 
   git.latest:
     - name: "{{ pillar['mytardis_repo'] }}"
-    - rev: {{ pillar.get('mytardis_branch', 'master') }}
+    - rev: {{ salt['pillar.get']('mytardis_branch', 'master') }}
     - target: {{ mytardis_inst_dir }}
     - force: true
     - force_checkout: true
@@ -306,7 +306,8 @@ redirect_stderr=true\n\
 
 celeryd:
   supervisord:
-{% if salt['pillar.get']('running_services:celeryd', true) %}
+{% if salt['pillar.get']('running_services:celeryd', true) or
+ 'celeryd' in salt['grains.get']('roles') %}
     - running
 {% else %}
     - dead
@@ -316,7 +317,8 @@ celeryd:
 
 celerybeat:
   supervisord:
-{% if salt['pillar.get']('running_services:celerybeat', true) %}
+{% if salt['pillar.get']('running_services:celerybeat', true) or
+ 'celerybeat' in salt['grains.get']('roles') %}
     - running
 {% else %}
     - dead

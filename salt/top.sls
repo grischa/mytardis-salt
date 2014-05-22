@@ -1,19 +1,26 @@
 # alphabetially sorted role configuration
 base:
   '*':
-    - roles-as-grains
+#    - roles-as-grains
 #    - minion-config
 
-  'roles:master-host':
-    - match: pillar
+  'G@roles:nginx or I@roles:nginx':
+    - match: compound
     - nginx
 
-  'roles:mytardis':
-    - match: pillar
+  'G@roles:mytardis or I@roles:mytardis':
+    - match: compound
     - mytardis
-    - mytardis.gunicorn
     - mytardis.supervisor
     - mytardis.postgresql-client
+
+  'G@roles:gunicorn or I@roles:gunicorn':
+    - match: compound
+    - mytardis.gunicorn
+
+  'G@roles:rabbitmq or I@roles:rabbitmq':
+    - match: compound
+    - rabbitmq
 
   'roles:nfs-client':
     - match: pillar
@@ -26,10 +33,6 @@ base:
   'roles:nfs-server':
     - match: pillar
     - nfs-server
-
-  'roles:rabbitmq':
-    - match: pillar
-    - rabbitmq
 
   'roles:db-server':
     - match: pillar
