@@ -22,7 +22,7 @@ postgresql-server:
 
 {% if grains['os_family'] == 'Debian' %}
   file.managed:
-    - name: /etc/postgresql/9.1/main/pg_hba.conf
+    - name: /etc/postgresql/9.3/main/pg_hba.conf
     - source: salt://templates/pg_hba.conf
     - mode: 644
     - template: jinja
