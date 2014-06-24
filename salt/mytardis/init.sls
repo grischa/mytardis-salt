@@ -218,8 +218,10 @@ django-sync-migrate:
         - cmd: force-branch-update
         - git: mytardis-git
         - cmd: buildout
+{% if 'postgres-server' in grains['roles'] %}
     - require:
         - postgres_database: {{ pillar['mytardis_db'] }}
+{% endif %}
 
 bin/django update_permissions:
   cmd.run:
@@ -241,7 +243,8 @@ buildout:
         - file: buildout-cfg
         - cmd: bootstrap
 
-{% if salt['pillar.get']('provide_staticfiles', False) %}
+{% if salt['pillar.get']('provide_staticfiles', False) or
+      'provide_staticfiles' in salt['grains.get']('roles') %}
 static_files_directory:
   file.directory:
     - name: "{{ salt['pillar.get']('static_file_storage_path') }}"
@@ -260,7 +263,7 @@ bin/django collectstatic --noinput:
         - cmd: buildout
     - require:
         - file: static_files_directory
-{% if 'nfs-mount' in salt['pillar.get']('roles', []) and '/srv/public_data' in salt['pillar.get']('nfs-servers', []) %}
+{% if 'nfs-mount' in salt['pillar.get']('roles', []) and '/srv/static_files-' + salt['grains.get']('deployment', 'test') in salt['pillar.get']('nfs-servers', []) %}
         - mount: '/srv/public_data'
 {% endif %}
 {% endif %}

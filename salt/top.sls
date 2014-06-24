@@ -1,8 +1,8 @@
 # alphabetially sorted role configuration
 mytardis:
-  '*':
-    - roles-as-grains
-    - minion-config
+#  '*':
+#    - roles-as-grains
+#    - minion-config
 
   'G@roles:nginx or I@roles:nginx':
     - match: compound
@@ -11,7 +11,7 @@ mytardis:
   'G@roles:mytardis or I@roles:mytardis':
     - match: compound
     - mytardis
-    - mytardis-db
+#    - mytardis-db
     - mytardis.supervisor
     - mytardis.postgresql-client
 
@@ -23,12 +23,12 @@ mytardis:
     - match: compound
     - rabbitmq
 
-  'roles:nfs-client':
-    - match: pillar
+  'G@roles:nfs-client':
+    - match: compound
     - nfs-client
 
-  'roles:nfs-mount':
-    - match: pillar
+  'G@roles:nfs-mount':
+    - match: compound
     - nfs-mount
 
   'roles:nfs-server':
@@ -39,4 +39,3 @@ mytardis:
     - match: compound
     - postgres-server
     - mytardis-db
-

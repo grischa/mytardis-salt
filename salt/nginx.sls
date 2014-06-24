@@ -49,7 +49,7 @@ nginx:
     - source: salt://templates/nginx_site.conf
     - template: jinja
     - context:
-      static_files_dir: "{{ pillar['nginx_static_file_path'] }}"
+      static_files_dir: "/srv/{{ 'static_files-' + salt['grains.get']('deployment', 'test') }}"
     - require:
       - pkg: nginx
 

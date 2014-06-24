@@ -11,6 +11,15 @@ pgsql-repo:
       - pkg: postgresql-server
 {% endif %}
 
+/etc/postgresql/9.3/main/postgresql.conf:
+  file.append:
+    - text: "listen_addresses = '*'"
+    - require:
+        - pkg: postgresql
+    - require_in:
+        - service: postgresql-server
+
+
 postgresql-server:
   pkg.installed:
     - names:
@@ -21,11 +30,13 @@ postgresql-server:
     {% endif %}
 
 {% if grains['os_family'] == 'Debian' %}
-  file.managed:
+  file.append:
     - name: /etc/postgresql/9.3/main/pg_hba.conf
-    - source: salt://templates/pg_hba.conf
-    - mode: 644
-    - template: jinja
+    - text: "local  all  {{ pillar['mytardis_db_user'] }}  md5\n
+{% if 'mytardis' not in salt['grains.get']('roles', []) %}
+host  all  {{ pillar['mytardis_db_user'] }}  118.138.240.0/22   md5\n
+host  all  {{ pillar['mytardis_db_user'] }}  127.0.0.1/32  md5\n
+{% endif %}"
     - require:
         - pkg: postgresql
 {% endif %}

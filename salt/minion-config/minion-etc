@@ -2,5 +2,6 @@ master: {{ master_address }}
 id: {{ grains['id'] }}
 
 mine_functions:
-  network.ip_addrs: []
+  network.ip_addrs:
+    - eth0
   test.ping: []

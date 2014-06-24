@@ -1,4 +1,5 @@
 from tardis.settings_changeme import *
+{% set deployment = salt['grains.get']('deployment') %}
 
 DATABASES = {
     'default': {
@@ -6,12 +7,17 @@ DATABASES = {
         'NAME': '{{ pillar['mytardis_db'] }}',
         'USER': '{{ pillar['mytardis_db_user'] }}',
         'PASSWORD': '{{ pillar['mytardis_db_pass'] }}',
-{% if 'postgres.host' not in pillar %}
-        'HOST': '',
+{% if 'postgres.host' in pillar %}
+        'HOST': '{{ salt['pillar.get']('postgres.host', '') }}',
 {% else %}
-        'HOST': '{{ pillar['postgres.host'] }}',
+        'HOST': '{{ salt['mine.get']('G@roles:postgres-server and G@deployment:' + deployment, 'network.ip_addrs', expr_form='compound').items()[0][1][0] }}',
 {% endif %}
         'PORT': '',
+{% if salt['pillar.get']('postgres_ssl', False) %}
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+{% endif %}
     }
 }
 
@@ -46,6 +52,10 @@ STAGING_PATH = "{{ pillar['staging_path'] }}"
 SYNC_TEMP_PATH = "{{ pillar['sync_temp_path'] }}"
 {% endif %}
 
+
+ALLOWED_HOSTS = ['{{ pillar['www_hostname'] }}', '{{ pillar['www_hostname'] }}.',
+{% if salt['grains.get']('deployment', 'production') == 'test' %}'*'{% endif %}
+]
 
 {% if "django_settings" in pillar %}
 {% for setting in pillar['django_settings'] %}

@@ -26,7 +26,8 @@ stunnel-settings-for-nfs:
         nfs_port: "{{ nfs_port }}"
         sec_nfs_port: "{{ sec_nfs_port }}"
         nfs_servers:
-{% for host in salt['mine.get']('roles:nfs-server', 'network.ip_addrs', 'grain').items() %}
+{% for host in salt['mine.get']('G@roles:nfs-server and G@deployment:' + salt['grains.get']('deployment', 'test'),
+                                'network.ip_addrs', 'compound').items() %}
           - {{ host.1 }}
 {% endfor %}
     - require:

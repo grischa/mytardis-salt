@@ -4,6 +4,21 @@
 nfs-kernel-server:
   pkg.installed: []
 
+restart-nfs:
+  module.wait:
+    - name: service.restart
+    - m_name: nfs-kernel-server
+    - watch:
+        - file: /etc/exports
+    - require:
+        - pkg: nfs-kernel-server
+
+/etc/exports:
+  file.append:
+    - text: "/foo localhost"
+    - require:
+        - pkg: nfs-kernel-server
+
 # /srv/public_data_volume:
 #   mount.mounted:
 #     - device: /dev/vdc
@@ -25,10 +40,19 @@ ubuntu-zfs:
 
 
 {% if salt['pillar.get']('nfs_stunnel', False) %}
-# install stunnel to secure redis connections
+# install stunnel
 stunnel:
   pkg.installed:
     - name: stunnel4
+
+python-openssl-restart:
+  service.restart:
+    - name: salt-minion
+    - require:
+        - pkg: python-openssl
+
+python-openssl:
+  pkg.installed: []
 
 /etc/default/stunnel4:
   file.replace:
@@ -50,6 +74,8 @@ tls.create_ca:
     - L: 'Melbourne'
     - O: 'MyTardis'
     - emailAddress: '{{ salt['pillar.get']('admin_email_address', 'admin@localhost') }}'
+    - require:
+        - pkg: python-openssl
 
 tls.create_csr:
   module.run:
@@ -82,7 +108,12 @@ tls.create_ca_signed_cert:
     - require:
         - pkg: stunnel
 
-{% endif %} # stunnel for redis
+stunnel4:
+  service.running:
+    - require:
+        - file: /etc/stunnel/nfs.conf
+        - module: tls.create_ca_signed_cert
+{% endif %} # stunnel
 
 
 {% for name, mount_point in salt['pillar.get']('nfs-exports', []).items() %}
@@ -93,10 +124,31 @@ zfs set sharenfs="rw@*" {{ name }}:
 {% endif %}
   cmd.run:
     - require:
+        - cmd: zpool-create
         - pkg: ubuntu-zfs
+        - module: restart-nfs
 
 zfs set mountpoint={{ mount_point }} {{ name }}:
   cmd.run:
     - require:
+        - cmd: zpool-create
         - pkg: ubuntu-zfs
+
+zpool import -fa:
+  cmd.run:
+    - require:
+        - pkg: ubuntu-zfs
+
+zpool-create:
+  cmd.run:
+    - name: zpool create {{ name }} /dev/vdc
+    - unless: zpool list|grep static_files
+    - require:
+        - cmd: "zpool import -fa"
+        - cmd: partition-volume
+
+partition-volume:
+  cmd.run:
+    - name: parted -s /dev/vdc mklabel gpt
+    - unless: "parted -lm /dev/vdc|grep /dev/vdc|grep gpt"
 {% endfor %}
