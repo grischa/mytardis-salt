@@ -1,5 +1,5 @@
 {% set deployment = salt['grains.get']('deployment') %}
-mytardis_db_user:
+db_user:
   postgres_user.present:
     - name: {{ pillar['mytardis_db_user'] }}
     - password: {{ pillar['mytardis_db_pass'] }}
@@ -12,9 +12,12 @@ mytardis_db_user:
             'postgres-server' in salt['pillar.get']('roles') ) %}
     - require:
         - pkg: postgresql-client
+{% else %}
+    - require:
+        - pkg: postgresql-server
 {% endif %}
 
-mytardis_db:
+database:
   postgres_database.present:
     - name: {{ pillar['mytardis_db'] }}
     - owner: {{ pillar['mytardis_db_user'] }}
